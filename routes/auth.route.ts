@@ -4,16 +4,17 @@ import {
   login,
   getUserDetails,
   logout,
-  getAllUser,
-  getSingleUser,
-  updateUserRole,
-  deleteUser,
   OTP,
   resetpassword,
   loginotp,
   passwordchange,
-  validOTP
+  validOTP,
 } from "../controllers/auth.controllers";
+import { 
+  getAllUser,
+  getSingleUser,
+  updateUserRole,
+  deleteUser} from "../controllers/admin.controllers"
 import { isAuthenticatedUser, authorizeRoles } from "../middileware/auth";
 
 const router = express.Router();
@@ -34,15 +35,6 @@ router.route("/me").get(isAuthenticatedUser, getUserDetails);
 router.post("/validOTP",validOTP)
 
 
-// admin
-router
-  .route("/admin/users")
-  .get(isAuthenticatedUser, authorizeRoles("admin"), getAllUser);
 
-router
-  .route("/admin/user/:id")
-  .get(isAuthenticatedUser, authorizeRoles("admin"), getSingleUser)
-  .put(isAuthenticatedUser, authorizeRoles("admin"), updateUserRole)
-  .delete(isAuthenticatedUser, authorizeRoles("admin"), deleteUser);
 
 export default router;

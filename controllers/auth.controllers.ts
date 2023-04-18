@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from "bcrypt";
 import User from "../Models/usermodel";
+import Skill from '../Models/skill';
 import userotps from "../Models/userotp";
 import Referral from "../Models/referral"
 import createError from "../utils/createErrors"
@@ -307,64 +308,3 @@ export const getUserDetails = catchAsyncErrors(async (req: any, res: Response, n
 
 
 
-// Get all users(admin)
-export const getAllUser = catchAsyncErrors(async (req: any, res: Response, next: NextFunction) => {
-  const users = await User.find();
-
-  res.status(200).json({
-    success: true,
-    users,
-  });
-});
-// Get single user (admin)
-export const getSingleUser = catchAsyncErrors(async (req: any, res: any, next: NextFunction) => {
-  const user = await User.findById(req.params.id);
-  if (!user) {
-    return next(createError(`User does not exist with Id: ${req.params.id}`, 401));
-  }
-  res.status(200).json({
-    success: true,
-    user,
-  });
-});
-
-// update User Role -- Admin
-export const updateUserRole = catchAsyncErrors(async (req: any, res: any, next: NextFunction) => {
-  const newUserData = {
-    name: req.body.name,
-    email: req.body.email,
-    role: req.body.role,
-  };
-
-  await User.findByIdAndUpdate(req.params.id, newUserData, {
-    new: true,
-    runValidators: true,
-    useFindAndModify: false,
-  });
-
-  res.status(200).json({
-    success: true,
-  });
-});
-
-
-// Delete User --Admin
-export const deleteUser = catchAsyncErrors(async (req: any, res: any, next: NextFunction) => {
-  const user: any = await User.findById(req.params.id);
-
-  if (!user) {
-    return next(
-      createError(`User does not exist with Id: ${req.params.id}`, 400)
-    );
-  }
-
-  //const imageId = user.avatar.public_id;
-  //await cloudinary.v2.uploader.destroy(imageId);
-
-  await user.remove()
-
-  res.status(200).json({
-    success: true,
-    message: "User Deleted Successfully",
-  });
-});

@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import dotenv from "dotenv"
 import authRoute from "./routes/auth.route";
 import infoRoute from "./routes/info.route";
+import admin from "./routes/admin.route";
 import cookieParser from "cookie-parser"
 import cors from "cors";
 const app = express();
@@ -16,7 +17,7 @@ const connect = async () => {
     }
   };
   const corsOptions = {
-    origin: "https://branaverse.vercel.app/", 
+    origin: process.env.SITE_URL, 
     credentials: true, // enable CORS with credentials
   };
   app.use(cors(corsOptions));
@@ -25,6 +26,7 @@ const connect = async () => {
   app.use(cookieParser());
   app.use("/api/auth", authRoute);
   app.use("/api/info", infoRoute);
+  app.use("/api/admin", admin);
   app.use((err:any, req:Request, res:Response, next:NextFunction) => {
     const errorStatus = err.status || 500;
     const errorMessage = err.message || "Something went wrong!";
@@ -37,4 +39,8 @@ const connect = async () => {
     connect();
     console.log("Backend server is running!");
   });
+  
+
+
+
   

@@ -70,7 +70,7 @@ const userSchema = new Schema({
   },
   userType: {
     type: String,
-    required: false,
+    required: true,
     enum: ['freelancer','buyer']
 
   },
@@ -84,10 +84,10 @@ const userSchema = new Schema({
   nofregistration:{
     type: String,
   },
-  skills: {
-    type: [{name:String}],
-    required: false,
-  },
+  skills: [{
+    type: Schema.Types.ObjectId,
+    ref: "Skill",
+  }],
   portfolio: {
     type: Array,
     required: false

@@ -6,6 +6,8 @@ import infoRoute from "./routes/info.route";
 import admin from "./routes/admin.route";
 import cookieParser from "cookie-parser"
 import cors from "cors";
+export const REFFER_REWARD= 0.01;
+
 const app = express();
 dotenv.config();
 const connect = async () => {

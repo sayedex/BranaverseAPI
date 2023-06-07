@@ -1,127 +1,49 @@
 import mongoose from "mongoose";
-const { Schema } = mongoose;
+const { Schema} = mongoose;
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 export interface UserDoc extends mongoose.Document {
-  firstName: string;
-  lastName: string;
-  username: string;
-  email: string;
-  password: string;
-  img?: string;
-  country: string;
-  profession:string;
-  desc?: string;
-  userType: 'freelancer' | 'buyer',
-  refId?:any[];
-  company?: boolean;
-  nofemployees?:string
-  nofregistration?:string
-  skills?: string[];
-  portfolio?: any[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  wallet: string;
+  role: string;
+  balances: { token: any; amount: number }[]; // Update the type definition
+
+
 }
 
+const balanceSchema = new Schema({
+  token: {
+    type: Schema.Types.ObjectId, // Update the type to Schema.Types.ObjectId
+    ref: 'Token', // Update the reference to the Token model
+    required: true,
+  },
+  amount: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+});
 
 
-const userSchema = new Schema({
-    firstName: {
-        type: String,
-        required: false,
+const userSchema = new Schema(
+  {
+    wallet: {
+      type: String,
+      required: true,
     },
-    lastName: {
-        type: String,
-        required: false,
-      },
-  username: {
-    type: String,
-    required: false,
-    unique: true,
+    role: {
+      type: String,
+      default: "user",
+    },
+    balances: {
+      type: [balanceSchema],
+      required: true,
+      default: [],
+    },
   },
-  email: {
-    type: String,
-    required: false,
-    unique: true,
-  },
-  password: {
-    type: String,
-    required: true,
-  },
-  img: {
-    type: String,
-    required: false,
-  },
-  country: {
-    type: String,
-    required: true,
-  },
-  profession:{
-    type: String,
-    required: false,
-  },
-  phone: {
-    type: String,
-    required: false,
-  },
-  desc: {
-    type: String,
-    required: false,
-  },
-  userType: {
-    type: String,
-    required: true,
-    enum: ['freelancer','buyer']
-
-  },
-  company: {
-    type: Boolean,
-    required: true,
-  },
-  nofemployees:{
-    type: String,
-  },
-  nofregistration:{
-    type: String,
-  },
-  skills: [{
-    type: Schema.Types.ObjectId,
-    ref: "Skill",
-  }],
-  portfolio: {
-    type: Array,
-    required: false
-  },
-  role: {
-    type: String,
-    default: "user",
-  },
-  refId: [{
-    type: Schema.Types.ObjectId,
-    ref: "referrals",
-  }],
-  resetPasswordToken: String,
-  resetPasswordExpire: Date,
-
-
-},{
-  timestamps:true
-});
-
-
-//save passoword...
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    return next();
+  {
+    timestamps: true,
   }
-  this.password = await bcrypt.hash(this.password, 5);
-  next();
-});
-// Compare Password
-
-userSchema.methods.comparePassword = async function (password:any) {
-  return await bcrypt.compare(password, this.password);
-};
+);
 
 // JWT TOKEN
 userSchema.methods.getJWTToken = function () {
@@ -131,6 +53,8 @@ userSchema.methods.getJWTToken = function () {
 };
 
 
+// // Enable autopopulate plugin
+// userSchema.plugin(require('mongoose-autopopulate'));
 //sellerIndividuala
 
-export default mongoose.model<UserDoc>('users', userSchema);
+export default mongoose.model<UserDoc>("users", userSchema);

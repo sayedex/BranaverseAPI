@@ -24,8 +24,9 @@ export const authorizeRoles = (...roles:any) => {
     if (!token) {
       return next(createError("Please Login to access this resource", 401));
     }
-  
+
     const decodedData = jwt.verify(token, process.env.JWT_KEY!) as JwtPayload;
+  
     req.user = await User.findById(decodedData.id);
   
     next();

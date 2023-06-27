@@ -21,7 +21,9 @@ export interface ProductDoc extends mongoose.Document {
   character: string;
   mint: string;
   incrementMinted(amount: number): Promise<void>;
-  USD:number
+  USD:number,
+  featured:boolean
+
 
 }
 
@@ -93,6 +95,10 @@ const productSchema = new Schema({
   series: {
     type: String,
     required: true,
+  },
+  featured:{
+    type: Boolean,
+    required: false,
   },
   paymentTokens: {
     type: [paymentTokenSchema],

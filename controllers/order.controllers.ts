@@ -10,12 +10,13 @@ export const getAllorder = catchAsyncErrors(
       const limits = Number(limit) || 10;
       const currentPage = Number(page) || 1;
       const skip = (currentPage - 1) * limits;
-      const order: any = await Order.find().skip(skip).limit(Number(limits));
+      const order: any = await Order.find().populate("product").skip(skip).limit(Number(limits));
+  
   
       res.status(200).json({
         success: true,
         message: "order retrieved successfully",
-        order: order,
+        order:order
       });
     }
   );

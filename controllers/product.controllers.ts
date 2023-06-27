@@ -6,6 +6,7 @@ import tokenSchema from "../Models/token";
 import createError from "../utils/createErrors";
 import catchAsyncErrors from "../middileware/catchAsyncErrors";
 import ApiFeatures from "../utils/apisysteam";
+import { shuffle } from "lodash"; // Import the shuffle function from lodash library
 
 //web3
 import { wallet } from "../utils/web3provider";
@@ -123,14 +124,15 @@ export const Updateproduct = catchAsyncErrors(
 
 // buy product for user - > the func will accept sinature from cokie let's see
 export const Buynft = catchAsyncErrors(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { productid, paymentid, account, amount } = req.body;
+  async (req: any, res: Response, next: NextFunction) => {
+    
+    const { productid, paymentid, amount } = req.body;
     // Product id -> index of every nft listing . id - > payment token id...
     const product = await Product.findOne({ productid: productid });
     if (!product) return next(createError(404, "product not exits"));
 
     // Find the user by ID
-    const user: any = await User.findOne({ wallet: account });
+    const user: any = await User.findById(req.user._id );
     if (!user) return next(createError(404, "no user found"));
 
     const paymentToken: any = product.paymentTokens.find(
@@ -143,6 +145,7 @@ export const Buynft = catchAsyncErrors(
       (balance: any) => balance.token.toString() === paymentid
     );
 
+
     if (!userTokenBalance) {
       return next(createError(404, "user balance not found"));
     }
@@ -151,12 +154,17 @@ export const Buynft = catchAsyncErrors(
       return next(createError(404, "Insufficient balance to buy the product"));
     }
 
+
+    console.log("1");
+    
     // mint helper...
 
     //create a nonce... // will replance with env file
     const nonceResponse = await axios.get(
-      "http://localhost:5000/api/product/nonce"
+    process.env.NonceAPI!
     );
+    console.log(nonceResponse);
+    
     const nonce = generateNonce(nonceResponse.data);
 
     if (!nonce) {
@@ -166,25 +174,29 @@ export const Buynft = catchAsyncErrors(
     // create signer hash >
     // const signature =await createSignature(account,productid,amount,nonce)
     //test
-    const signature = await createSignature(account, 1, 1, nonce);
+    const signature = await createSignature(user.wallet, productid, amount, nonce);
+
+    console.log("sig",signature);
+    console.log("nonce",nonce);
+    
     if (!signature) {
       return next(createError(404, "signature not found"));
     }
 
     // then call mitn func if done then cut balance...
 
-    // const mintnft = await Mint("mint",[account,1,1,"0x",nonce,signature]);
-    //  if (!mintnft) {
-    //   return next(createError(404, "mintnft failed try again.."));
-    //  }
-
+  const mintnft = await Mint("mint",[user.wallet,productid,amount,"0x",nonce,signature]);
+   if (!mintnft.isDone) {
+       return next(createError(404, "mintnft failed try again.."));
+    }
+  
     const order = await Order.create({
       users: user._id,
       amount:amount,
       totalprice:paymentToken.price * amount,
       paymentToken: paymentToken.symbol,
       product: product._id,
-      tx: "asasas",
+      tx: "mintnft.tx",
       paidAt: Date.now(),
     });
 
@@ -287,7 +299,24 @@ export const getAllProducts = catchAsyncErrors(
   }
 );
 
+// all return func...
+export const Getfeaturedproduct = catchAsyncErrors(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { page, limit } = req.query;
+    const limits = Number(limit) || 10;
+    const currentPage = Number(page) || 1;
+    const skip = (currentPage - 1) * limits;
+    const product: any = await Product.find({featured:true}).skip(skip).limit(Number(limits));
+    const shuffledProducts = shuffle(product);
+    const randomProducts = shuffledProducts.slice(0, 3);
 
+    res.status(200).json({
+      success: true,
+      message: "Products retrieved successfully",
+      product: randomProducts,
+    });
+  }
+);
 /// get one product
 
 export const getSingleProducts = catchAsyncErrors(

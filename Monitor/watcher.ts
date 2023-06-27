@@ -2,12 +2,14 @@ import Bank from "../Models/bank";
 import { getContract } from "../utils/web3";
 import { BankDoc } from "../Models/bank";
 import User from "../Models/usermodel";
-import { web3client } from "../utils/web3";
+import { web3client, bigNumberToNumber } from "../utils/web3";
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function watcher(id: string) {
   try {
-    const bankstate: any = await Bank.findOne({ id: id }).populate("token");
+    const bankstate: any = await Bank.findById(id).populate("token");
+
     if (!bankstate) return;
     const getContractinitance = getContract(bankstate.token.address);
 
@@ -23,7 +25,7 @@ async function watcher(id: string) {
       !bankstate.uptoDateWithBlockNumber &&
       bankstate.uptoDateWithBlockNumber == 0
     ) {
-      options.fromBlock = 0;
+      options.fromBlock = "latest";
       options.toBlock = "latest";
     } else {
       // We only do one block at a time
@@ -32,14 +34,16 @@ async function watcher(id: string) {
       options.toBlock = newBlockNumber;
     }
 
+    const decimals = await getContractinitance.decimals();
 
     const eventinit = await getContractinitance.filters.Transfer();
-
+    console.log(options);
     const events = await getContractinitance.queryFilter(
       eventinit,
-      options.fromBlock,
-      options.toBlock
+      options.fromBlock, //   options.fromBlock
+      options.toBlock //      options.toBlock
     );
+    console.log(events);
 
     const block = await web3client.getBlock(options.toBlock);
     if (!block) {
@@ -51,6 +55,8 @@ async function watcher(id: string) {
     ) {
       return;
     }
+
+    const bankTokenId = bankstate.token._id.toString();
 
     bankstate.uptoDateWithBlockNumber = block.number; // Assign the new block number value here
     await bankstate.save();
@@ -67,21 +73,15 @@ async function watcher(id: string) {
 
         // Check if the token exists in the token balances
         const tokenBalance = Founduser.balances.find(
-          (balance: any) => balance.token._id.toString() === id
+          (balance: any) => balance.token._id.toString() === bankTokenId
         );
-        const amountodeposit = log.args.value.toNumber();
+
+        const amountodepositAA = bigNumberToNumber(log.args.value, decimals);
 
         if (tokenBalance) {
           // Token balance exists, update the amount
-          tokenBalance.amount += amountodeposit;
-        } else {
-          // Token balance does not exist, create a new entry
-          Founduser.balances.push({
-            token: id,
-            amount: amountodeposit,
-          });
+          tokenBalance.amount += amountodepositAA;
         }
-
         // Save the updated user
         await Founduser.save();
       }

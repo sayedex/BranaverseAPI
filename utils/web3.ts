@@ -8,7 +8,7 @@ import {erc20ABI} from "../ABI/erc20"
 export const tokenaddresss = "0x5e6602B762F76d8BFDC7321AA0B787B1E67b187F"
 
 const RPC_URL =
-  "https://data-seed-prebsc-1-s2.binance.org:8545";
+  "https://gateway.tenderly.co/public/polygon-mumbai";
 export const web3client = new ethers.providers.JsonRpcProvider(RPC_URL);
 
 // checks
@@ -36,7 +36,6 @@ export async function createSignature(user:string,id:number,amount:number,nonce:
 
   const messageHash =  ethers.utils.solidityKeccak256(["bytes"], [message]);
   const signature = await wallet.signMessage(ethers.utils.arrayify(messageHash));
-   
 
  return signature;
 }
@@ -94,12 +93,20 @@ export const verifySignature = async (wallet:string, signature:string,nonce:stri
 export const Mint = async(fname: string,args: Array<any>)=>{
   const name = String(fname);
   const myContract = await getContractInstance(wallet);
+
+  
   const response = await myContract?.[name](
     ...args);
     const receipt = await response.wait();
-    console.log(receipt.transactionHash);
+    console.log(receipt);
     
-    return receipt?true:false;
+    return {tx:receipt.transactionHash,isDone:true};
 }
 
 
+// convert user deposit amount to actual token amnount
+
+export function bigNumberToNumber(bigNumberValue: ethers.BigNumber, decimals: number): number {
+  const numberValue: string = ethers.utils.formatUnits(bigNumberValue, decimals);
+  return Number(numberValue);
+}

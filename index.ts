@@ -34,6 +34,7 @@ const connect = async () => {
   app.use("/api/token", tokenAdding);
   app.use("/api/user", User);
   app.use("/api/order", order);
+  app.use("/api/info", infoRoute);
   app.use((err:any, req:Request, res:Response, next:NextFunction) => {
     const errorStatus = err.status || 500;
     const errorMessage = err.message || "Something went wrong!";
@@ -44,7 +45,7 @@ const connect = async () => {
   app.listen(5000, async() => {
     // connect();
     connect();
-    watch(["6471f7ee1d2cc27c778fa56b","6471f7ee1d2cc27c778fa56b","6471f7ee1d2cc27c778fa56b"]);
+    watch(["64892982c4e4f08676b87823","648929a1c4e4f08676b8786d"]);
     console.log("Backend server is running!");
   });
   

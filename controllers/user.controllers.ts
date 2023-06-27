@@ -5,16 +5,16 @@ import Token from "../Models/token";
 import catchAsyncErrors from "../middileware/catchAsyncErrors";
 import { verifySignature } from "../utils/web3";
 import sendToken from "../utils/sendtoken";
-
+import { getUserbalance } from "../utils/Helper";
 
 export const createUser = catchAsyncErrors(
   async (req: any, res: any, next: any) => {
-    const { wallet, signature,nonce } = req.body;
+    const { wallet, signature, nonce } = req.body;
     let user = await User.findOne({ wallet });
-     // Verify the signature
-    const isSignatureValid =await verifySignature(wallet, signature,nonce);
+    // Verify the signature
+    const isSignatureValid = await verifySignature(wallet, signature, nonce);
     console.log(isSignatureValid);
-    
+
     if (!isSignatureValid) {
       return next(createError(404, "user signature not valid"));
     }
@@ -41,9 +41,7 @@ export const createUser = catchAsyncErrors(
 
 export const getUserinfo = catchAsyncErrors(
   async (req: any, res: any, next: any) => {
-    const user = await User.findById(req.user._id).populate(
-      "balances.token"
-    );
+    const user = await User.findById(req.user._id).populate("balances.token");
     if (!user) {
       return next(createError(404, "user not valid"));
     }
@@ -51,6 +49,25 @@ export const getUserinfo = catchAsyncErrors(
       success: true,
       message: "user get successfully",
       user,
+    });
+  }
+);
+
+export const getUserNFTbalance = catchAsyncErrors(
+  async (req: any, res: any, next: any) => {
+    const nft = await getUserbalance();
+    if (!nft) {
+      return next(createError(404, "nft not found"));
+    }
+
+    const filerdNFTArray = nft.result.filter(
+      (item: any) => item.token_address === process.env.nftaddress
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "user get successfully",
+      nft: filerdNFTArray,
     });
   }
 );

@@ -6,7 +6,8 @@ import {
     removeproduct,
     testsignature,
     getAllProducts,
-    getSingleProducts
+    getSingleProducts,
+    Getfeaturedproduct
 } from "../controllers/product.controllers";
 import { isAuthenticatedUser, authorizeRoles } from "../middileware/auth";
 
@@ -14,13 +15,14 @@ import { isAuthenticatedUser, authorizeRoles } from "../middileware/auth";
 import withIronSessionApiRoute from "../controllers/nonce"
 
 const router = express.Router();
-router.post("/addProduct", addProduct);
-router.post("/Buynft",Buynft);
-router.post("/Updateproduct/:id",Updateproduct);
-router.delete("/removeproduct/:productId", removeproduct);
+router.post("/addProduct", isAuthenticatedUser,authorizeRoles("admin"),addProduct);
+router.post("/Buynft",isAuthenticatedUser,Buynft);
+router.post("/Updateproduct/:id",isAuthenticatedUser,authorizeRoles("admin"),Updateproduct);
+router.delete("/removeproduct/:productId",isAuthenticatedUser,authorizeRoles("admin"), removeproduct);
 router.get('/testsignature',testsignature)
 router.get('/nonce',withIronSessionApiRoute)
 router.route("/allproducts").get(getAllProducts);
+router.route("/getfeaturedproduct").get(Getfeaturedproduct)
 router.route("/product/:id").get(getSingleProducts);
 
 
